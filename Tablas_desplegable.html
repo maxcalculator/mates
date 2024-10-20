@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Práctica de Operaciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .operation-type {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .operation-type label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .operations {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+            text-align: center;
+        }
+        .operation {
+            margin-bottom: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .result-icon {
+            font-size: 20px;
+            margin-left: 10px;
+        }
+        select {
+            width: 100%;
+            padding: 5px;
+            font-size: 16px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="operation-type">
+            <h2>Elige una operación</h2>
+            <label><input type="checkbox" id="addition" value="addition"> Suma</label>
+            <label><input type="checkbox" id="subtraction" value="subtraction"> Resta</label>
+            <label><input type="checkbox" id="multiplication" value="multiplication"> Multiplicación</label>
+            <label><input type="checkbox" id="division" value="division"> División</label>
+
+            <select id="num-selector">
+                <option value="all">Todas</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+            </select>
+
+            <button class="btn" onclick="generateOperations()">Generar Operaciones</button>
+        </div>
+        <!-- <div></div> -->
+    
+        <div id="operations-container" class="operations">
+            <h2>Operaciones</h2>
+            <!-- Aquí se generarán las operaciones -->
+        </div>
+    </div>
+
+    <script>
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateOperations() {
+            const operationsContainer = document.getElementById('operations-container');
+            operationsContainer.innerHTML = '<h2>Operaciones</h2>'; // Limpiar las operaciones previas y agregar el título
+
+            const isAddition = document.getElementById('addition').checked;
+            const isSubtraction = document.getElementById('subtraction').checked;
+            const isMultiplication = document.getElementById('multiplication').checked;
+            const isDivision = document.getElementById('division').checked;
+
+            const selectedNumber = document.getElementById('num-selector').value;
+            const specificNum = selectedNumber === 'all' ? null : parseInt(selectedNumber);
+
+            let operationSign = '';
+            let operationType = null;
+
+            if (isAddition) {
+                operationSign = '+';
+                operationType = 'addition';
+            } else if (isSubtraction) {
+                operationSign = '-';
+                operationType = 'subtraction';
+            } else if (isMultiplication) {
+                operationSign = '×';
+                operationType = 'multiplication';
+            } else if (isDivision) {
+                operationSign = '÷';
+                operationType = 'division';
+            } else {
+                alert('Por favor selecciona un tipo de operación.');
+                return;
+            }
+
+            // Crear una lista de números del 1 al 10 y mezclarla para asegurarnos de que no se repitan hasta usarlos todos
+            let availableNumbers = shuffle([...Array(10).keys()].map(i => i + 1));
+            console.log("availableNumbers", availableNumbers)
+
+            for (let i = 0; i < 15; i++) {
+                //Obtener num1 de la lista de números disponibles y reponer la lista si se agota
+                if (availableNumbers.length === 0) {
+                    availableNumbers = shuffle([...Array(10).keys()].map(i => i + 1));
+                }
+                let num1 = availableNumbers.pop();
+
+                let num2 = specificNum ? specificNum : getRandomNumber(1, 10);
+
+                const operationDiv = document.createElement('div');
+                operationDiv.className = 'operation';
+
+                let operationHTML = '';
+
+                if (operationType === 'division') {
+                    // Si el usuario seleccionó un número específico, se usa como divisor
+                    num2 = specificNum ? specificNum : getRandomNumber(1, 10);
+                    // Asegurar que el dividendo esté entre los múltiplos del divisor (divisor a 10 * divisor)
+                    num1 = getRandomNumber(num2, num2 * 10);
+                    while (num1 % num2 !== 0) {
+                        num1 = getRandomNumber(num2, num2 * 10);
+                    }
+                }
+
+                if (operationType === 'subtraction') {
+                    // Asegurar que el resultado sea positivo
+                    if (num1 < num2) {
+                        [num1, num2] = [num2, num1]; // Intercambiar números
+                    }
+                }
+
+                operationHTML = `${num1} ${operationSign} ${num2} = <input type="number" class="result-input" data-num1="${num1}" data-num2="${num2}" data-operation="${operationType}" id="input-${i}" /> <span class="result-icon" id="icon-${i}"></span>`;
+                operationDiv.innerHTML = operationHTML;
+
+                operationsContainer.appendChild(operationDiv);
+            }
+
+            const submitButton = document.createElement('button');
+            submitButton.textContent = 'Verificar Respuestas';
+            submitButton.className = 'btn';
+            submitButton.onclick = verifyResults;
+            operationsContainer.appendChild(submitButton);
+
+            // Asignar evento para tabular con Enter
+            assignEnterToTab();
+        }
+
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function assignEnterToTab() {
+            const inputs = document.querySelectorAll('.result-input');
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // Prevenir comportamiento por defecto
+                        const nextInput = document.getElementById(`input-${index + 1}`);
+                        if (nextInput) {
+                            nextInput.focus(); // Tabular al siguiente input
+                        }
+                    }
+                });
+            });
+        }
+
+        function verifyResults() {
+            const inputs = document.querySelectorAll('.result-input');
+            inputs.forEach((input, index) => {
+                const num1 = parseInt(input.getAttribute('data-num1'));
+                const num2 = parseInt(input.getAttribute('data-num2'));
+                const operationType = input.getAttribute('data-operation');
+                const userAnswer = parseFloat(input.value);
+                let correctAnswer;
+
+                switch (operationType) {
+                    case 'addition':
+                        correctAnswer = num1 + num2;
+                        break;
+                    case 'subtraction':
+                        correctAnswer = num1 - num2;
+                        break;
+                    case 'multiplication':
+                        correctAnswer = num1 * num2;
+                        break;
+                    case 'division':
+                        correctAnswer = num1 / num2;
+                        break;
+                    default:
+                        correctAnswer = null;
+                }
+
+                const icon = document.getElementById(`icon-${index}`);
+                if (userAnswer === correctAnswer) {
+                    input.style.backgroundColor = 'lightgreen';
+                    icon.textContent = '😊'; // Ícono de sonrisa
+                } else {
+                    input.style.backgroundColor = 'lightcoral';
+                    icon.textContent = '💀'; // Ícono de calavera para respuesta incorrecta
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
